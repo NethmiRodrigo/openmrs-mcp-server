@@ -30,6 +30,10 @@ export function seg(id: string): string {
   return encodeURIComponent(id);
 }
 
+export function isResultsBody(body: unknown): boolean {
+  return typeof body === "object" && body !== null && Array.isArray((body as { results?: unknown }).results);
+}
+
 export async function listPage(
   client: OpenMrsClient,
   path: string,
@@ -39,6 +43,9 @@ export async function listPage(
 ): Promise<Page> {
   const result = await client.get(path, { ...query, limit, startIndex, totalCount: true });
   if (result.status === 204) return { results: [], startIndex };
+  if (!isResultsBody(result.body)) {
+    throw new OpenMrsError("server", "OpenMRS server error: the response has no results list.");
+  }
   return toPage(result.body, startIndex);
 }
 

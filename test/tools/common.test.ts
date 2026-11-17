@@ -31,6 +31,14 @@ describe("common helpers", () => {
     expect(await listPage(client, "/ws/rest/v1/thing", {}, 5, 3)).toEqual({ results: [], startIndex: 3 });
   });
 
+  it("listPage rejects a 200 body without a results list", async () => {
+    const client = fakeClient({ "/ws/rest/v1/thing": { status: 200, body: {} } });
+    await expect(listPage(client, "/ws/rest/v1/thing", {}, 5, 0)).rejects.toMatchObject({
+      kind: "server",
+      message: "OpenMRS server error: the response has no results list.",
+    });
+  });
+
   it("assertExists maps 404 to the given message", async () => {
     const client = fakeClient({
       "/ws/rest/v1/patient/x": new OpenMrsError("not_found", "Not found: /ws/rest/v1/patient/x.", 404),

@@ -73,6 +73,14 @@ describe("get_patient_summary", () => {
     expect(out.allergies).toEqual(expected);
   });
 
+  it("reports a 200 allergy body without results as a section error", async () => {
+    const { call } = await connect(fakeClient(routes({ [ALLERGY]: { status: 200, body: {} } })));
+    const res = await call("get_patient_summary", { patientUuid: "p1" });
+    expect(res.isError).toBeUndefined();
+    const out = JSON.parse(textOf(res));
+    expect(out.allergies).toEqual({ error: "OpenMRS server error: the response has no results list." });
+  });
+
   it("turns a failed section into an error entry", async () => {
     const client = fakeClient(routes({ [COND]: new OpenMrsError("forbidden", "no condition privilege", 403) }));
     const { call } = await connect(client);

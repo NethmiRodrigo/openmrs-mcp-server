@@ -1,6 +1,6 @@
 import { OpenMrsError } from "../openmrs/errors.js";
 import { stripLinks, type Page } from "../openmrs/shape.js";
-import { fail, listPage, ok, seg, uuidArg, type ToolRegistrar } from "./common.js";
+import { fail, isResultsBody, listPage, ok, seg, uuidArg, type ToolRegistrar } from "./common.js";
 
 const PATIENT_V =
   "custom:(uuid,display,identifiers:(display),person:(gender,age,birthdate,dead,deathDate,preferredAddress:(display)))";
@@ -60,7 +60,10 @@ export const registerGetPatientSummary: ToolRegistrar = (server, getClient) => {
             const res = await client.get(`/ws/rest/v1/patient/${seg(patientUuid)}/allergy`);
             if (res.status === 204) return { status: "not recorded" as const };
             const body = res.body;
-            const results = isRecord(body) && Array.isArray(body.results) ? body.results : [];
+            if (!isResultsBody(body)) {
+              throw new OpenMrsError("server", "OpenMRS server error: the response has no results list.");
+            }
+            const results = (body as { results: unknown[] }).results;
             if (results.length === 0) return { status: "no known allergies" as const };
             return { status: "see list" as const, items: stripLinks(results) as unknown[] };
           })(),

@@ -128,6 +128,7 @@ describe("get_encounters", () => {
   it("maps filters, checking the encounter type first", async () => {
     const client = fakeClient({
       [PATIENT]: found,
+      "/ws/rest/v1/visit/v1": found,
       "/ws/rest/v1/encountertype/t1": found,
       "/ws/rest/v1/encounter": list,
     });
@@ -139,13 +140,26 @@ describe("get_encounters", () => {
       fromDate: "2024-01-01",
       toDate: "2024-12-31",
     });
-    expect(client.calls.map((c) => c.path)).toEqual([PATIENT, "/ws/rest/v1/encountertype/t1", "/ws/rest/v1/encounter"]);
-    expect(client.calls[2]!.query).toMatchObject({
+    expect(client.calls.map((c) => c.path)).toEqual([
+      PATIENT,
+      "/ws/rest/v1/visit/v1",
+      "/ws/rest/v1/encountertype/t1",
+      "/ws/rest/v1/encounter",
+    ]);
+    expect(client.calls[3]!.query).toMatchObject({
       visit: "v1",
       encounterType: "t1",
       fromdate: "2024-01-01",
-      todate: "2024-12-31",
+      todate: "2024-12-31T23:59:59.999",
     });
+  });
+
+  it("reports an unknown visit without listing", async () => {
+    const client = fakeClient({ [PATIENT]: found, "/ws/rest/v1/visit/v1": notFound });
+    const { call } = await connect(client);
+    const res = await call("get_encounters", { patientUuid: "p1", visitUuid: "v1" });
+    expect(textOf(res)).toBe("No visit with UUID v1.");
+    expect(client.calls.map((c) => c.path)).toEqual([PATIENT, "/ws/rest/v1/visit/v1"]);
   });
 
   it("reports an unknown encounter type without listing", async () => {
@@ -168,5 +182,6 @@ describe("get_encounters", () => {
     const { listTools } = await connect(fakeClient({}));
     const tool = (await listTools()).find((t) => t.name === "get_encounters");
     expect(tool?.description).toContain("YYYY-MM-DD");
+    expect(tool?.description).toContain("both inclusive");
   });
 });

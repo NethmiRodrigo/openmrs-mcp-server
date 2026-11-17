@@ -68,6 +68,11 @@ describe("live (local nightly server)", () => {
     expect(text(res)).toBe(`No encounter type with UUID ${ZERO}.`);
   });
 
+  it("unknown visit", async () => {
+    const res = await call("get_encounters", { patientUuid, visitUuid: ZERO });
+    expect(text(res)).toBe(`No visit with UUID ${ZERO}.`);
+  });
+
   it("concept search", async () => {
     const res = await call("search_concepts", { query: "weight" });
     expect(res.isError).toBeFalsy();

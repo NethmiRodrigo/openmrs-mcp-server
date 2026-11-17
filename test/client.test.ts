@@ -180,6 +180,32 @@ describe("OpenMrsClient", () => {
     expect(sessionCalls(calls)).toBe(2);
   });
 
+  it.each([
+    ["AbortError", () => new DOMException("aborted", "AbortError")],
+    ["TimeoutError", () => new DOMException("timed out", "TimeoutError")],
+  ])("maps %s to a network error without latching", async (_name, make) => {
+    let n = 0;
+    const { client, calls } = setup((url) => {
+      if (url === SESSION) {
+        if (n++ === 0) throw make();
+        return sessionOk();
+      }
+      return json(200, {});
+    });
+    const err = await rejection(client.get("/ws/rest/v1/visit"));
+    expect(err.kind).toBe("network");
+    expect(err.message).toContain("openmrs_url");
+    await client.get("/ws/rest/v1/visit");
+    expect(sessionCalls(calls)).toBe(2);
+  });
+
+  it("passes an abort signal on every fetch", async () => {
+    const { client, calls } = setup(withSession(() => json(200, {})));
+    await client.get("/ws/rest/v1/visit");
+    expect(calls.length).toBe(2);
+    for (const call of calls) expect(call.init.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("network error on a normal call", async () => {
     let target = 0;
     const { client, calls } = setup((url) => {

@@ -15,6 +15,19 @@ describe("loadConfig", () => {
     expect(config.password).toBe("secret");
   });
 
+  it("trims the URL", () => {
+    expect(loadConfig({ ...valid, OPENMRS_URL: " https://h/openmrs/ " }).baseUrl).toBe("https://h/openmrs");
+  });
+
+  it.each(["https://h/openmrs?x=1", "https://h/openmrs#f", "https://u:p@h/openmrs"])(
+    "rejects query, fragment or credentials: %s",
+    (url) => {
+      const env = { ...valid, OPENMRS_URL: url };
+      expect(() => loadConfig(env)).toThrow(ConfigError);
+      expect(() => loadConfig(env)).toThrow(/OPENMRS_URL/);
+    },
+  );
+
   it("rejects non-local http", () => {
     const env = { ...valid, OPENMRS_URL: "http://emr.example.org/openmrs" };
     expect(() => loadConfig(env)).toThrow(ConfigError);

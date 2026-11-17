@@ -34,7 +34,8 @@ export function buildUrl(baseUrl: string, path: string, query?: Query): URL {
   }
 
   // Tomcat strips ";..." path parameters before resolving "..", so "..;" escapes the prefix.
-  if (/;|%3b/i.test(url.pathname)) {
+  // Encoded slashes and backslashes are rejected for the same reason.
+  if (/;|%3b|%2f|%5c/i.test(url.pathname)) {
     throw rejected();
   }
 

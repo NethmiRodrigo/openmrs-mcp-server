@@ -17,7 +17,7 @@ function required(env: Record<string, string | undefined>, name: string): string
 }
 
 export function loadConfig(env: Record<string, string | undefined>): Config {
-  const rawUrl = required(env, "OPENMRS_URL");
+  const rawUrl = required(env, "OPENMRS_URL").trim();
   const username = required(env, "OPENMRS_USERNAME");
   const password = required(env, "OPENMRS_PASSWORD");
 
@@ -26,6 +26,13 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     url = new URL(rawUrl);
   } catch {
     throw new ConfigError(`OPENMRS_URL is not a valid URL: ${rawUrl}`);
+  }
+
+  if (url.search !== "" || url.hash !== "") {
+    throw new ConfigError("OPENMRS_URL must not contain a query string or a fragment.");
+  }
+  if (url.username !== "" || url.password !== "") {
+    throw new ConfigError("OPENMRS_URL must not contain a username or password.");
   }
 
   if (url.protocol !== "https:" && !(url.protocol === "http:" && LOCAL_HOSTS.has(url.hostname))) {
@@ -38,5 +45,5 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     throw new ConfigError("OPENMRS_PASSWORD must not contain ':' (not supported by Basic authentication here).");
   }
 
-  return { baseUrl: rawUrl.replace(/\/+$/, ""), username, password };
+  return { baseUrl: (url.origin + url.pathname).replace(/\/+$/, ""), username, password };
 }

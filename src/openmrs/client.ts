@@ -7,6 +7,8 @@ export type GetResult = { status: 200; body: unknown } | { status: 204 };
 
 type LoginState = "unknown" | "ok" | "failed";
 
+const FETCH_TIMEOUT_MS = 30_000;
+
 const SESSION_PATH = "/ws/rest/v1/session";
 
 const LOGIN_MESSAGE =
@@ -84,6 +86,7 @@ export class OpenMrsClient {
       response = await this.fetchImpl(url, {
         method: "GET",
         redirect: "manual",
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         headers: { Authorization: this.authorization, Accept: "application/json" },
       });
       text = response.status === 204 ? "" : await response.text();

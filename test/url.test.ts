@@ -83,4 +83,13 @@ describe("buildUrl", () => {
   ])("rejects path parameters %j", (path) => {
     expectRejected(path);
   });
+
+  it.each([
+    "/ws/rest/v1/..%2f..%2fadmin/index.htm",
+    "/ws/rest/v1/..%2F..%2Fadmin",
+    "/ws/rest/v1/x%5c..%5cadmin",
+    "/ws/rest/v1/x%5C..%5Cadmin",
+  ])("rejects encoded slash and backslash %j", (path) => {
+    expectRejected(path);
+  });
 });

@@ -9,7 +9,7 @@ export const registerGetEncounters: ToolRegistrar = (server, getClient) => {
     {
       title: "Get encounters",
       description:
-        "List encounters for a patient, newest first. Optionally filter by visit, encounter type or date range. Dates are YYYY-MM-DD.",
+        "List encounters for a patient, newest first. Optionally filter by visit, encounter type or date range. Dates are YYYY-MM-DD and both inclusive.",
       inputSchema: {
         patientUuid: uuidArg,
         visitUuid: uuidArg.optional(),
@@ -25,6 +25,9 @@ export const registerGetEncounters: ToolRegistrar = (server, getClient) => {
       try {
         const client = await getClient(extra);
         await assertExists(client, `/ws/rest/v1/patient/${seg(patientUuid)}`, `No patient with UUID ${patientUuid}.`);
+        if (visitUuid !== undefined) {
+          await assertExists(client, `/ws/rest/v1/visit/${seg(visitUuid)}`, `No visit with UUID ${visitUuid}.`);
+        }
         if (encounterTypeUuid !== undefined) {
           await assertExists(
             client,
@@ -41,7 +44,7 @@ export const registerGetEncounters: ToolRegistrar = (server, getClient) => {
             ...(visitUuid !== undefined ? { visit: visitUuid } : {}),
             ...(encounterTypeUuid !== undefined ? { encounterType: encounterTypeUuid } : {}),
             ...(fromDate !== undefined ? { fromdate: fromDate } : {}),
-            ...(toDate !== undefined ? { todate: toDate } : {}),
+            ...(toDate !== undefined ? { todate: `${toDate}T23:59:59.999` } : {}),
             v: "custom:(uuid,display,encounterDatetime,encounterType:(display),location:(display),visit:(uuid))",
           },
           limit,
