@@ -4,7 +4,7 @@
   "display_name": "OpenMRS",
   "version": "0.1.0",
   "description": "Read-only access to an OpenMRS instance",
-  "author": { "name": "OpenMRS" },
+  "author": { "name": "Nethmi Rodrigo" },
   "server": {
     "type": "node",
     "entry_point": "dist/stdio.js",
