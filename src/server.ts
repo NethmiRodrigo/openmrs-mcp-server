@@ -1,6 +1,9 @@
 import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { GetClient } from "./tools/common.js";
+import { registerGetEncounters } from "./tools/getEncounters.js";
+import { registerGetObservations } from "./tools/getObservations.js";
+import { registerGetVisits } from "./tools/getVisits.js";
 import { registerOpenmrsRequest } from "./tools/openmrsRequest.js";
 import { registerSearchConcepts } from "./tools/searchConcepts.js";
 import { registerSearchPatients } from "./tools/searchPatients.js";
@@ -12,5 +15,8 @@ export function createServer(getClient: GetClient): McpServer {
   registerOpenmrsRequest(server, getClient);
   registerSearchPatients(server, getClient);
   registerSearchConcepts(server, getClient);
+  registerGetObservations(server, getClient);
+  registerGetVisits(server, getClient);
+  registerGetEncounters(server, getClient);
   return server;
 }
