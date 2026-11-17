@@ -1,0 +1,23 @@
+{
+  "name": "openmrs-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/stdio.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "pack": "rm -rf build/mcpb && npm run build && mkdir -p build/mcpb && cp -r dist manifest.json package.json package-lock.json build/mcpb/ && (cd build/mcpb && npm ci --omit=dev --ignore-scripts) && mcpb pack build/mcpb openmrs-mcp.mcpb"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "2.1.2",
+    "@types/node": "^26.6.6",
+    "typescript": "~5.9",
+    "vitest": "^5.1.0"
+  }
+}
