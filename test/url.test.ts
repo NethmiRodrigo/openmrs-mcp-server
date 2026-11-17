@@ -4,9 +4,9 @@ import { buildUrl } from "../src/openmrs/url.js";
 
 const base = "https://h.org/openmrs";
 
-function expectRejected(path: string): void {
+function expectRejected(path: string, baseUrl: string = base): void {
   try {
-    buildUrl(base, path);
+    buildUrl(baseUrl, path);
   } catch (error) {
     expect(error).toBeInstanceOf(OpenMrsError);
     expect((error as OpenMrsError).kind).toBe("invalid_path");
@@ -68,10 +68,19 @@ describe("buildUrl", () => {
   });
 
   it("rejects traversal out of a root base url", () => {
-    expect(() => buildUrl("https://h.org", "/ws/rest/../admin")).toThrow(OpenMrsError);
+    expectRejected("/ws/rest/../admin", "https://h.org");
   });
 
   it("rejects traversal into a sibling prefix of the base path", () => {
-    expect(() => buildUrl(base, "/ws/rest/v1/../../../openmrs2/ws/rest/x")).toThrow(OpenMrsError);
+    expectRejected("/ws/rest/v1/../../../openmrs2/ws/rest/x");
+  });
+
+  it.each([
+    "/ws/rest/v1/..;/..;/..;/admin",
+    "/ws/rest/v1/patient;jsessionid=x",
+    "/ws/rest/v1/%3B/x",
+    "/ws/rest/v1/%3b/x",
+  ])("rejects path parameters %j", (path) => {
+    expectRejected(path);
   });
 });

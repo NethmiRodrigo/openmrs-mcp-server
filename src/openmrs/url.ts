@@ -33,6 +33,11 @@ export function buildUrl(baseUrl: string, path: string, query?: Query): URL {
     throw rejected();
   }
 
+  // Tomcat strips ";..." path parameters before resolving "..", so "..;" escapes the prefix.
+  if (/;|%3b/i.test(url.pathname)) {
+    throw rejected();
+  }
+
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined) {
       url.searchParams.set(key, String(value));
