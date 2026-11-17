@@ -1,0 +1,42 @@
+{
+  "manifest_version": "0.2",
+  "name": "openmrs",
+  "display_name": "OpenMRS",
+  "version": "0.1.0",
+  "description": "Read-only access to an OpenMRS instance",
+  "author": { "name": "OpenMRS" },
+  "server": {
+    "type": "node",
+    "entry_point": "dist/stdio.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/stdio.js"],
+      "env": {
+        "OPENMRS_URL": "${user_config.openmrs_url}",
+        "OPENMRS_USERNAME": "${user_config.username}",
+        "OPENMRS_PASSWORD": "${user_config.password}"
+      }
+    }
+  },
+  "user_config": {
+    "openmrs_url": {
+      "type": "string",
+      "title": "OpenMRS URL",
+      "description": "Base URL including the webapp path, e.g. https://dev3.openmrs.org/openmrs",
+      "required": true
+    },
+    "username": {
+      "type": "string",
+      "title": "Username",
+      "description": "OpenMRS username",
+      "required": true
+    },
+    "password": {
+      "type": "string",
+      "title": "Password",
+      "description": "OpenMRS password (must not contain ':')",
+      "required": true,
+      "sensitive": true
+    }
+  }
+}
