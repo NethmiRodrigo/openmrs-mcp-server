@@ -9,6 +9,7 @@ const EXPECTED_TOOLS = [
   "get_observations",
   "get_visits",
   "get_encounters",
+  "get_patient_summary",
 ];
 
 describe("server", () => {

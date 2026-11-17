@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { GetClient } from "./tools/common.js";
 import { registerGetEncounters } from "./tools/getEncounters.js";
 import { registerGetObservations } from "./tools/getObservations.js";
+import { registerGetPatientSummary } from "./tools/getPatientSummary.js";
 import { registerGetVisits } from "./tools/getVisits.js";
 import { registerOpenmrsRequest } from "./tools/openmrsRequest.js";
 import { registerSearchConcepts } from "./tools/searchConcepts.js";
@@ -18,5 +19,6 @@ export function createServer(getClient: GetClient): McpServer {
   registerGetObservations(server, getClient);
   registerGetVisits(server, getClient);
   registerGetEncounters(server, getClient);
+  registerGetPatientSummary(server, getClient);
   return server;
 }
