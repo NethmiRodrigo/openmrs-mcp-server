@@ -71,4 +71,27 @@ describe("shape", () => {
     const page: Page = { results: [{ a: 1 }], startIndex: 0, totalCount: 1 };
     expect(JSON.parse(toText(page))).toEqual(page);
   });
+
+  it("moves past a first item larger than the cap", () => {
+    const page: Page = {
+      results: [{ text: "x".repeat(200_000) }, { text: "small" }],
+      startIndex: 7,
+    };
+    const out = toText(page);
+    const parsed = JSON.parse(out);
+    expect(parsed.results).toEqual([]);
+    expect(parsed.truncated).toBe(true);
+    expect(parsed.returned).toBe(0);
+    expect(parsed.nextStartIndex).toBe(8);
+    expect(parsed.note).toContain("startIndex 7");
+    expect(Buffer.byteLength(out)).toBeLessThanOrEqual(MAX_BYTES);
+  });
+
+  it("falls back to a byte cut when extra fields exceed the cap", () => {
+    const warning =
+      "Response cut at 100 KB; the text below is not valid JSON. Use v=custom:(...) to request fewer fields.";
+    const out = toText({ results: [{ a: 1 }], startIndex: 0, big: "y".repeat(200_000) });
+    expect(out.startsWith(warning)).toBe(true);
+    expect(Buffer.byteLength(out)).toBeLessThanOrEqual(MAX_BYTES + warning.length + 1);
+  });
 });

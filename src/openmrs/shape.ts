@@ -47,7 +47,7 @@ function byteLength(text: string): number {
   return Buffer.byteLength(text, "utf8");
 }
 
-function truncatePage(value: Record<string, unknown>, items: unknown[]): string {
+function truncatePage(value: Record<string, unknown>, items: unknown[]): string | undefined {
   const startIndex = typeof value.startIndex === "number" ? value.startIndex : 0;
   const build = (returned: number): string =>
     JSON.stringify(
@@ -56,8 +56,11 @@ function truncatePage(value: Record<string, unknown>, items: unknown[]): string 
         results: items.slice(0, returned),
         truncated: true,
         returned,
-        nextStartIndex: startIndex + returned,
-        note: `Output capped at 100 KB; ${returned} of ${items.length} items returned. Request the next items with startIndex=${startIndex + returned}, use a smaller limit, or use v=custom:(...) to request fewer fields.`,
+        nextStartIndex: startIndex + Math.max(returned, 1),
+        note:
+          returned === 0
+            ? `The item at startIndex ${startIndex} is larger than 100 KB and was left out. Request it on its own with v=custom:(...) to choose fewer fields. Continue with startIndex=${startIndex + 1}.`
+            : `Output capped at 100 KB; ${returned} of ${items.length} items returned. Request the next items with startIndex=${startIndex + returned}, use a smaller limit, or use v=custom:(...) to request fewer fields.`,
       },
       null,
       2,
@@ -69,7 +72,8 @@ function truncatePage(value: Record<string, unknown>, items: unknown[]): string 
     if (byteLength(build(mid)) <= MAX_BYTES) low = mid;
     else high = mid - 1;
   }
-  return build(low);
+  const out = build(low);
+  return byteLength(out) <= MAX_BYTES ? out : undefined;
 }
 
 function cutBytes(text: string): string {
@@ -84,7 +88,8 @@ export function toText(value: unknown): string {
   const text = JSON.stringify(value, null, 2) ?? "null";
   if (byteLength(text) <= MAX_BYTES) return text;
   if (isRecord(value) && Array.isArray(value.results)) {
-    return truncatePage(value, value.results);
+    const page = value.results.length > 0 ? truncatePage(value, value.results) : undefined;
+    if (page !== undefined) return page;
   }
   return cutBytes(text);
 }
